@@ -13,6 +13,13 @@ contract fundMe {
 
     address[] public funders ;
     mapping(address => uint256) public  adrresVsAmount; 
+
+    address public owner; //owner of the contract
+
+    constructor() {
+        owner = msg.sender ; 
+    }
+
     function fund() public payable {
         // want able to set a minimun fund in usd , 'payable' for using as wallets
         // 1. how to send eth to contract
@@ -22,13 +29,42 @@ contract fundMe {
         
         require(msg.value.getConversionRate() >= 1e10 , "Require atleast 1 ether"); // if the value sent is less than the require value then the message will be popped
         funders.push(msg.sender);
-        adrresVsAmount[msg.sender] = msg.value; 
+        adrresVsAmount[msg.sender] += msg.value; 
     
     }
 
-    
-     
-    // function withdraw() {
+    function withdraw() public onlyOwner{
 
-    // }
+        require(msg.sender == owner ,"Not Allowed") ;
+        // only is the msg.sender is owner then only the below lines can be accessed
+
+        for(uint256 i =0 ; i<funders.length ; i++) {
+           address fundersWithdraw =  funders[i] ; 
+           adrresVsAmount[fundersWithdraw] = 0;
+        }
+         funders = new address [](0) ;  // funders addresses to'0' 
+
+     //sending ETH back to the funders 
+    // transfer , call , send
+
+        //transfer -> throws error if there is error for transferring
+        payable(msg.sender).transfer(address(this).balance) ; 
+
+        //send -> returns bool , if there exists any error then we can use require() to resend the value
+       bool sentStatus =  payable(msg.sender).send(address(this).balance) ; // resending back, if failed that string is printed and again the require() will run 
+        require(sentStatus , "Failed") ; 
+
+        //call ->more powerfull,  forwards all gas , 
+      (bool status , ) = payable(msg.sender).call{value: address(this).balance}("") ; // {bool status ,byte dataReturned} -> whatever the function is called (""), if the data is returned then it is stored in 'dataReturned'
+        require(status , "Failed") ;
+    }
+    
+   //modifiers --> just like 'Middlewares' in expressJS
+   modifier onlyOwner {
+    require(msg.sender == owner , "Not Allowed");
+    _; // represents the rest of the code of the function withdraw() , if it was reverse then the lines of withdraw() is exected and then require() is executed
+   }
+
+
+    
 }
