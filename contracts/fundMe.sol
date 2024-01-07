@@ -72,7 +72,7 @@ contract fundMe {
 
     
     function transfer() public  {
-        address payable  reciever = <Reciever-address> ;
+        address payable  reciever = `Reciever-address` ;
         bool success = reciever.send(address(this).balance) ;
         require(success , "Failed") ;
     }
