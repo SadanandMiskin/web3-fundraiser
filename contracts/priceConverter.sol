@@ -22,7 +22,7 @@ library priceConverter {
     function getConversionRate(uint256 ethAmount) internal view returns(uint256) {
             uint256 ethPrice = getPrice();
             uint256 ethToUsd = (ethPrice * ethAmount) / 1e18 ;
-            return ethToUsd ; 
+            return ethToUsd; 
     }
      
 }
